@@ -1,0 +1,16 @@
+[Unit]
+Description=SLURM sackd 
+After=network.target
+
+[Service]
+Type=notify
+EnvironmentFile=-/etc/sysconfig/sackd
+ExecStart=/usr/sbin/sackd --systemd $SACKD_OPTIONS
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,13 @@
+[Unit]
+Description=Add client to IPA realm
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=-/etc/sysconfig/ipa-client-install
+ExecStart=ipa-client-install -U --no-ntp --mkhomedir --force-join --domain $IPA_DOMAIN $IPA_CREDS $IPA_OPTIONS
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target

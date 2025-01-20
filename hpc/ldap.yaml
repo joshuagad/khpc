@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ldap
+  name: ldap
+  namespace: hpc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ldap
+  template:
+    metadata:
+      labels:
+        app: ldap
+    spec:
+      volumes:
+      - name: data
+        nfs:
+          server: 10.199.11.144
+          path: /volume1/polab-hpc/ldap
+
+      containers:
+      - name: openldap
+        env:
+        - name: LDAP_ORGANISATION
+          value: "Phyiscal Oceanography Lab"
+        - name: LDAP_DOMAIN
+          value: "polab.hpc"
+        - name: LDAP_READONLY_USER
+          value: "true"
+        - name: HOSTNAME
+          value: "ldap.hpc.svc"
+        - name: LDAP_TLS_VERIFY_CLIENT
+          value: "never"
+        image: osixia/openldap:1.2.4
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          tcpSocket:
+            port: ldap-port
+        readinessProbe:
+          tcpSocket:
+            port: ldap-port
+        ports:
+        - containerPort: 389
+          name: ldap-port
+          protocol: TCP
+        - containerPort: 636
+          name: ssl-ldap-port
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/lib/ldap
+          name: data
+          subPath: ldap
+        - mountPath: /etc/ldap/slapd.d
+          name: data
+          subPath: slapd.d
+      - name: phpldapadmin
+        env:
+        - name: PHPLDAPADMIN_LDAP_HOSTS
+          value: "ldap.hpc.svc"
+        - name: PHPLDAPADMIN_HTTPS
+          value: "false"
+        - name: PHPLDAPADMIN_TRUST_PROXY_SSL
+          value: "true"
+        image: osixia/phpldapadmin:0.7.1
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ldap
+  name: ldap
+  namespace: hpc
+spec:
+  ports:
+  - name: ldap-port
+    port: 389
+    protocol: TCP
+    targetPort: ldap-port
+  - name: ssl-ldap-port
+    port: 636
+    protocol: TCP
+    targetPort: ssl-ldap-port
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: ldap
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ldap
+  namespace: hpc
+spec:
+  rules:
+  - host: openldap.polab.hpc
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: ldap
+            port:
+              number: 80
+
+
+
