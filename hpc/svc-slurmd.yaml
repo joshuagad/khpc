@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slurmd
+  namespace: hpc
+  labels:
+    app: slurmd
+spec:
+  clusterIP: None
+  selector:
+    app: slurmd
+

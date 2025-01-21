@@ -1,0 +1,108 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: slurmdb
+  namespace: hpc
+spec:
+  selector:
+    matchLabels:
+      app: slurmdb
+  serviceName: slurmdb
+  replicas: 1
+  minReadySeconds: 10 
+  template:
+    metadata:
+      labels:
+        app: slurmdb
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: etc-slurm
+        configMap:
+          name: etc-slurm
+          defaultMode: 0600
+      - name: slurm-key
+        configMap:
+          name: slurm-key
+          defaultMode: 0600
+      - name: slurm
+        nfs:
+          server: 172.16.42.10
+          path: /slurm
+      #initContainers:
+      #  - name: sssd-prep
+      #    image: joshuagad/slurmdb:24.05.2
+      #    volumeMounts:
+      #    - mountPath: /etc/sssd
+      #        name: etc-sssd
+      #    - mountPath: /tmp/sssd
+      #        name: configmap-sssd-conf
+      #    command:
+      #    - sh
+      #    - -c
+      #    - install -o sssd -m 0600 /tmp/sssd/sssd.conf /etc/sssd
+      containers:
+      - name: slurmdb
+        image: joshuagad/slurmdbd:24.05.2
+        imagePullPolicy: Always
+        #livenessProbe:
+        #  successThreshold: 1
+        #  failureThreshold: 3
+        #  tcpSocket:
+        #    port: ssh
+        #readinessProbe:
+        #  successThreshold: 1
+        #  failureThreshold: 3
+        #  tcpSocket:
+        #    port: ssh
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 6819
+          name: ssh
+        volumeMounts:
+        - mountPath: /etc/slurm/slurm.conf
+          name: etc-slurm
+          subPath: slurm.conf
+        - mountPath: /etc/slurm/slurmdbd.conf
+          name: etc-slurm
+          subPath: slurmdbd.conf
+        - mountPath: /etc/slurm/slurm.key
+          name: slurm-key
+          subPath: slurm.key
+      - name: mariadb
+        image: mariadb:11.7-rc
+        imagePullPolicy: Always
+        ports:
+        - name: mysql
+          containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: root
+        - name: MYSQL_USER
+          value: slurm
+        - name: MYSQL_PASSWORD
+          value: slurm1234
+        - name: MYSQL_DATABASE
+          value: slurm_acct_db
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: slurm
+          subPath: db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slurmdb
+  namespace: hpc
+  labels:
+    app: slurmdb
+spec:
+  type: ClusterIP
+  selector:
+    app: slurmdb
+  ports:
+    - name: ssh
+      port: 6819
+

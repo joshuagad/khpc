@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: slurmd-cn1
+  namespace: hpc
+spec:
+  selector:
+    matchLabels:
+      app: slurmd
+  template:
+    metadata:
+      labels:
+        app: slurmd
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: pgcv-cmpt-na.pgcv.local
+      hostname: cn1
+      subdomain: slurmd
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: home-users
+        nfs:
+          server: 172.16.42.10
+          path: /users
+      - name: home-projects
+        nfs:
+          server: 172.16.42.10
+          path: /projects
+      - name: etc-slurm
+        configMap:
+          name: etc-slurm
+          defaultMode: 0644
+      - name: slurm-key
+        configMap:
+          name: slurm-key
+          defaultMode: 0600
+      - name: etc-sysconfig
+        configMap:
+          name: etc-sysconfig
+          defaultMode: 0644
+      - name: slurm
+        nfs:
+          server: 172.16.42.10
+          path: /slurm
+      containers:
+      - name: slurmd
+        image: joshuagad/slurmd:24.05.2
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 6818
+          name: ssh
+        volumeMounts:
+        - mountPath: /home/users
+          name: home-users
+        - mountPath: /home/projects
+          name: home-projects
+        #- mountPath: /etc/slurm/slurm.conf
+        #  name: etc-slurm
+        #  subPath: slurm.conf
+        - mountPath: /etc/slurm/slurm.key
+          name: slurm-key
+          subPath: slurm.key
+        - mountPath: /etc/sysconfig/slurmd
+          name: etc-sysconfig
+          subPath: slurmd
+---
+

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sssd-conf
+  namespace: hpc
+data:
+  sssd.conf: |
+    [domain/pgcv.hpc]
+    id_provider = ldap
+    auth_provider = ldap
+    chpass_provider = ldap
+    ldap_uri = ldap://ldap/
+    ldap_default_bind_dn = cn=readonly,dc=pgcv,dc=hpc
+    ldap_default_authtok_type = password
+    ldap_default_authtok = readonly
+    ldap_user_search_base = ou=users,dc=pgcv,dc=hpc
+    ldap_group_search_base = ou=groups,dc=pgcv,dc=hpc???ou=projects,dc=pgcv,dc=hpc??
+    cache_credentials = True
+    ldap_tls_reqcert = allow
+
+    [sssd]
+    services = nss, sudo, pam, autofs, ssh
+    domains = pgcv.hpc
+
+    [nss]
+    homedir_substring = /home/users

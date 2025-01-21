@@ -18,16 +18,16 @@ spec:
       volumes:
       - name: data
         nfs:
-          server: 10.199.11.144
-          path: /volume1/polab-hpc/ldap
+          server: 172.16.42.10
+          path: /ldap
 
       containers:
       - name: openldap
         env:
         - name: LDAP_ORGANISATION
-          value: "Phyiscal Oceanography Lab"
+          value: "PGC Visayas"
         - name: LDAP_DOMAIN
-          value: "polab.hpc"
+          value: "pgcv.hpc"
         - name: LDAP_READONLY_USER
           value: "true"
         - name: HOSTNAME
@@ -103,7 +103,7 @@ metadata:
   namespace: hpc
 spec:
   rules:
-  - host: openldap.polab.hpc
+  - host: openldap.pgcv.hpc
     http:
       paths:
       - pathType: Prefix

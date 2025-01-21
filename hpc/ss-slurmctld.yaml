@@ -1,0 +1,80 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: slurmctl
+  namespace: hpc
+spec:
+  selector:
+    matchLabels:
+      app: slurmctl
+  serviceName: slurmctl
+  replicas: 1
+  minReadySeconds: 10 
+  template:
+    metadata:
+      labels:
+        app: slurmctl
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: etc-slurm
+        configMap:
+          name: etc-slurm
+          defaultMode: 0644
+      - name: slurm-key
+        configMap:
+          name: slurm-key
+          defaultMode: 0600
+      - name: slurm
+        nfs:
+          server: 172.16.42.10
+          path: /slurm
+      containers:
+      - name: slurmctl
+        image: joshuagad/slurmctld:24.05.2
+        imagePullPolicy: Always
+        #livenessProbe:
+        #  successThreshold: 1
+        #  failureThreshold: 3
+        #  tcpSocket:
+        #    port: ssh
+        #readinessProbe:
+        #  successThreshold: 1
+        #  failureThreshold: 3
+        #  tcpSocket:
+        #    port: ssh
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 6817
+          name: ssh
+        volumeMounts:
+        - mountPath: /etc/slurm/slurm.conf
+          name: etc-slurm
+          subPath: slurm.conf
+        - mountPath: /etc/slurm/slurm.key
+          name: slurm-key
+          subPath: slurm.key
+        - mountPath: /var/spool/slurmctld
+          name: slurm
+          subPath: spool/slurmctld
+        - mountPath: /var/log/slurm
+          name: slurm
+          subPath: log/slurmctld
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slurmctl
+  namespace: hpc
+  labels:
+    app: slurmctl
+spec:
+  type: ClusterIP
+  selector:
+    app: slurmctl
+  ports:
+    - name: slurmctld
+      port: 6817
+
