@@ -1,0 +1,17 @@
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+SyslogFacility AUTHPRIV
+AuthorizedKeysFile      .ssh/authorized_keys
+PasswordAuthentication no
+AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys %u %t %k
+AuthorizedKeysCommandUser nobody
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials no
+UsePAM yes
+X11Forwarding yes
+AcceptEnv XMODIFIERS
+Subsystem       sftp    /usr/libexec/openssh/sftp-server
+PrintMotd no

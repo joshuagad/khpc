@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+data:
+  welcome: |+
+    -. .-.   .-. .-.   .-. .-.   .-. .-.   .-. .-.   .-. .-.   .-. .-
+    ||\|||\ /|||\|||\ /|||\|||\ /|||\|||\ /|||\|||\ /|||\|||\ /|||\||
+    |/ \|||\|||/ \|||\|||/ \|||\|||/ \|||\|||/ \|||\|||/ \|||\|||/ \|
+    ~   `-~ `-`   `-~ `-`   `-~ `-`   `-~ `-`   `-~ `-`   `-~ `-`   `
+    Welcome to the PGCV HPC cluster environment!
+
+    * Please run all your jobs through slurm
+
+    * There are no programs available on this cluster without using
+      the "hpc" command.
+      Run "hpc" to view current tools available in the system.
+      Usage: hpc <tool> <program> [arguments]
+
+    * Some useful slurm commands:
+        squeue - check status of running jobs
+        sacct  - check status of finished jobs
+        sbatch - submit a batch script to the scheduler
+        seff   - check effectivity of resources allocated for a job
+
+    * For assistance, contact the HPC adminstrator at:
+        bioinfo.pgc.upvisayas@up.edu.ph
+
+kind: ConfigMap
+metadata:
+  name: motd
+  namespace: hpc
